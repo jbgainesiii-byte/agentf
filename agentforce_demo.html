@@ -1,0 +1,2253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Lucid Customer Care, Agentforce Demo</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 13px;
+    color: #080707;
+    background: #f3f3f3;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: #0176d3; text-decoration: none; cursor: pointer; }
+  a:hover { text-decoration: underline; }
+
+  .global-header {
+    height: 40px;
+    background: linear-gradient(180deg, #1B5297 0%, #032D60 100%);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    color: white;
+  }
+  .global-header .sf-logo {
+    width: 28px; height: 28px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+  }
+  .global-header .sf-logo::before { content: '☁'; color: #00A1E0; font-size: 18px; }
+  .global-search {
+    flex: 0 1 600px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 4px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    color: #706e6b;
+    font-size: 13px;
+  }
+  .global-search::before { content: '🔍'; margin-right: 8px; opacity: 0.6; font-size: 11px; }
+  .global-icons { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .global-icons .icon-btn {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    font-size: 14px;
+  }
+  .global-icons .icon-btn:hover { background: rgba(255,255,255,0.2); }
+  .notif-badge {
+    position: absolute;
+    top: -2px; right: -2px;
+    background: #ea001e;
+    color: white;
+    border-radius: 50%;
+    width: 16px; height: 16px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+  }
+
+  .app-header {
+    background: white;
+    border-bottom: 1px solid #dddbda;
+    padding: 0 16px;
+    display: flex;
+    align-items: stretch;
+    height: 56px;
+  }
+  .app-launcher {
+    display: flex;
+    align-items: center;
+    padding-right: 16px;
+    border-right: 1px solid #dddbda;
+    margin-right: 16px;
+    color: #706e6b;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .app-launcher::before { content: '⋮⋮⋮'; letter-spacing: -3px; }
+  .app-name {
+    display: flex;
+    align-items: center;
+    font-weight: 700;
+    font-size: 18px;
+    color: #080707;
+    padding-right: 32px;
+  }
+  .nav-tabs { display: flex; align-items: stretch; gap: 4px; }
+  .nav-tab {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    color: #080707;
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 4px 4px 0 0;
+    position: relative;
+    gap: 6px;
+  }
+  .nav-tab.active {
+    background: #f3f3f3;
+    border: 1px solid #c9c9c9;
+    border-bottom: 1px solid #f3f3f3;
+    margin-bottom: -1px;
+  }
+  .nav-tab.active::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: #0176d3;
+    border-radius: 2px 2px 0 0;
+  }
+  .nav-tab .tab-icon { color: #0176d3; font-size: 13px; }
+  .nav-tab .tab-close {
+    color: #706e6b;
+    padding: 2px 4px;
+    border-radius: 2px;
+    font-size: 11px;
+  }
+  .nav-tab .tab-close:hover { background: #e5e5e5; }
+  .reports-tab { color: #080707; font-weight: 400; }
+
+  /* ============ DEMO CONTROL STRIP ============ */
+  .demo-strip {
+    background: #032D60;
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    flex-wrap: wrap;
+  }
+  .demo-strip .demo-label {
+    background: #f88962;
+    color: white;
+    padding: 3px 9px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+  .demo-strip .demo-info { font-size: 12px; flex: 1; min-width: 200px; }
+  .demo-strip .demo-info strong { color: #f88962; }
+  .case-selector { display: flex; gap: 6px; flex-wrap: wrap; }
+  .case-btn {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 7px 13px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: inherit;
+    font-weight: 500;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .case-btn:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.6); }
+  .case-btn.active {
+    background: white;
+    color: #032D60;
+    border-color: white;
+    font-weight: 700;
+  }
+  .case-btn .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .case-btn .dot.green { background: #2e844a; }
+  .case-btn .dot.yellow { background: #c98a16; }
+  .case-btn .dot.red { background: #ba0517; }
+  .reset-btn {
+    background: rgba(255,255,255,0.05);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 7px 11px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: inherit;
+  }
+  .reset-btn:hover { background: rgba(255,255,255,0.15); }
+
+  /* ============ REPORT VIEW ============ */
+  .report-container {
+    background: #f3f3f3;
+    min-height: calc(100vh - 152px);
+    padding: 12px;
+  }
+  .report-header {
+    background: white;
+    border: 1px solid #dddbda;
+    border-radius: 4px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .report-title { display: flex; align-items: center; gap: 12px; }
+  .report-icon {
+    width: 32px; height: 32px;
+    background: #04844b;
+    border-radius: 4px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+  }
+  .report-title h1 { font-size: 18px; font-weight: 700; color: #080707; line-height: 1.2; }
+  .report-title .breadcrumb { font-size: 11px; color: #706e6b; }
+  .report-actions { display: flex; gap: 4px; align-items: center; }
+  .btn {
+    height: 32px;
+    padding: 0 16px;
+    background: white;
+    border: 1px solid #c9c9c9;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #0176d3;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+  }
+  .btn:hover { background: #f3f3f3; }
+  .btn-primary { background: #0176d3; color: white; border-color: #0176d3; }
+  .btn-primary:hover { background: #014486; }
+  .btn-icon { width: 32px; padding: 0; justify-content: center; }
+
+  .report-meta {
+    background: white;
+    border: 1px solid #dddbda;
+    border-top: none;
+    padding: 8px 16px;
+    display: flex;
+    gap: 32px;
+    font-size: 12px;
+  }
+  .report-meta .meta-item .label { color: #706e6b; font-size: 11px; display: block; }
+  .report-meta .meta-item .value { font-weight: 700; color: #080707; font-size: 14px; }
+
+  .data-table-wrap {
+    background: white;
+    border: 1px solid #dddbda;
+    border-top: none;
+    overflow: auto;
+    max-height: calc(100vh - 320px);
+  }
+  table.data-table { border-collapse: collapse; width: 100%; font-size: 12px; }
+  table.data-table thead {
+    position: sticky; top: 0; background: #fafaf9; z-index: 2;
+  }
+  table.data-table th {
+    text-align: left;
+    padding: 8px 12px;
+    font-weight: 700;
+    color: #080707;
+    border-bottom: 1px solid #dddbda;
+    font-size: 12px;
+    white-space: nowrap;
+    border-right: 1px solid #e5e5e5;
+  }
+  table.data-table th .col-header { display: flex; align-items: center; gap: 4px; }
+  table.data-table th .col-arrow { color: #706e6b; font-size: 9px; }
+  table.data-table td {
+    padding: 6px 12px;
+    border-bottom: 1px solid #f3f3f3;
+    border-right: 1px solid #f3f3f3;
+    white-space: nowrap;
+    color: #080707;
+  }
+  table.data-table tr { cursor: pointer; }
+  table.data-table tbody tr:hover { background: #f3f9fe; }
+  table.data-table tr.new-case { animation: highlightNew 2s ease-out; }
+  @keyframes highlightNew {
+    0% { background: #fff4ce; }
+    100% { background: white; }
+  }
+  .case-link { color: #0176d3; }
+  .checkbox {
+    width: 14px; height: 14px;
+    border: 1px solid #c9c9c9;
+    border-radius: 2px;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  /* ============ CASE DETAIL VIEW ============ */
+  .case-view { display: none; }
+  .case-view.active { display: block; }
+  .report-view.hidden { display: none; }
+
+  .case-header {
+    background: white;
+    border-bottom: 1px solid #dddbda;
+    padding: 12px 16px;
+  }
+  .case-header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .case-title-wrap { display: flex; align-items: center; gap: 12px; }
+  .case-icon {
+    width: 36px; height: 36px;
+    background: #f88962;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+  }
+  .case-title-text .breadcrumb { font-size: 11px; color: #706e6b; }
+  .case-title-text h1 { font-size: 18px; font-weight: 700; color: #080707; }
+  .case-header-buttons { display: flex; gap: 4px; flex-wrap: wrap; }
+
+  .case-key-fields {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 16px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #f3f3f3;
+  }
+  .key-field .label { font-size: 11px; color: #706e6b; margin-bottom: 2px; }
+  .key-field .value { font-size: 13px; color: #080707; }
+
+  .case-body {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .case-tabs-wrap {
+    background: white;
+    border: 1px solid #dddbda;
+    border-radius: 4px;
+  }
+  .case-tabs {
+    display: flex;
+    border-bottom: 1px solid #dddbda;
+    padding: 0 16px;
+  }
+  .case-tab {
+    padding: 12px 12px;
+    font-size: 14px;
+    color: #444;
+    cursor: pointer;
+    font-weight: 600;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+  }
+  .case-tab.active { color: #0176d3; border-bottom-color: #0176d3; }
+
+  .action-bar {
+    background: #fafaf9;
+    border-bottom: 1px solid #dddbda;
+    padding: 0 16px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .action-tab {
+    padding: 10px 12px;
+    font-size: 13px;
+    color: #444;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+  }
+  .action-tab.active { color: #0176d3; border-bottom-color: #0176d3; font-weight: 600; }
+
+  .detail-section {
+    padding: 16px;
+    border-bottom: 1px solid #f3f3f3;
+  }
+  .detail-section h3 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #080707;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .detail-section h3::before { content: '▾'; font-size: 10px; color: #706e6b; }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 32px;
+  }
+  .detail-field {
+    border-bottom: 1px solid #f3f3f3;
+    padding-bottom: 8px;
+  }
+  .detail-field .label {
+    font-size: 11px;
+    color: #706e6b;
+    margin-bottom: 2px;
+    font-weight: 600;
+  }
+  .detail-field .value {
+    font-size: 13px;
+    color: #080707;
+    word-break: break-word;
+  }
+
+  .right-panel { display: flex; flex-direction: column; gap: 12px; }
+  .related-card {
+    background: white;
+    border: 1px solid #dddbda;
+    border-radius: 4px;
+    padding: 12px 16px;
+  }
+  .related-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    font-size: 12px;
+  }
+  .related-grid a { display: flex; align-items: center; gap: 6px; padding: 4px 0; }
+
+  .activity-card {
+    background: white;
+    border: 1px solid #dddbda;
+    border-radius: 4px;
+  }
+  .activity-tabs {
+    display: flex;
+    gap: 16px;
+    padding: 0 16px;
+    border-bottom: 1px solid #dddbda;
+  }
+  .activity-tab {
+    padding: 8px 0;
+    font-size: 13px;
+    color: #444;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+  .activity-tab.active { color: #0176d3; border-bottom-color: #0176d3; font-weight: 600; }
+  .feed-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f3f3f3;
+    font-size: 12px;
+  }
+  .feed-item .feed-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .feed-item .author { font-weight: 700; color: #080707; }
+  .feed-item .timestamp { color: #706e6b; font-size: 11px; }
+  .feed-item .feed-icon {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #f88962;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 9px;
+    font-weight: bold;
+  }
+  .feed-item .feed-body { color: #444; margin-left: 22px; }
+
+  /* ============ AGENTFORCE PANEL ============ */
+  .af-trigger {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: linear-gradient(135deg, #032D60 0%, #1798C1 100%);
+    color: white;
+    padding: 14px 22px;
+    border-radius: 28px;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: 0 8px 24px rgba(3, 45, 96, 0.4);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 100;
+    transition: transform 0.2s;
+    border: none;
+    font-family: inherit;
+  }
+  .af-trigger:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(3, 45, 96, 0.5); }
+  .af-trigger .af-sparkle {
+    width: 22px; height: 22px;
+    background: white;
+    border-radius: 50%;
+    color: #032D60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 13px;
+  }
+  .af-trigger.pulsing { animation: pulse 1.5s infinite; }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 8px 24px rgba(3, 45, 96, 0.4); }
+    50% { box-shadow: 0 8px 24px rgba(23, 152, 193, 0.8), 0 0 0 8px rgba(23, 152, 193, 0.2); }
+  }
+
+  .af-panel {
+    position: fixed;
+    top: 0; right: 0;
+    width: 440px;
+    height: 100vh;
+    background: white;
+    border-left: 1px solid #dddbda;
+    box-shadow: -8px 0 32px rgba(0,0,0,0.12);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+  }
+  .af-panel.open { transform: translateX(0); }
+  .af-panel-header {
+    padding: 16px;
+    background: linear-gradient(135deg, #032D60 0%, #1798C1 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .af-panel-header .af-brand { display: flex; align-items: center; gap: 10px; }
+  .af-panel-header .af-logo {
+    width: 32px; height: 32px;
+    background: white;
+    border-radius: 50%;
+    color: #032D60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+  }
+  .af-panel-header h2 { font-size: 16px; font-weight: 700; }
+  .af-panel-header .af-sub { font-size: 11px; opacity: 0.85; }
+  .af-close {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: white;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  .af-close:hover { background: rgba(255,255,255,0.25); }
+
+  .af-content { flex: 1; overflow-y: auto; padding: 16px; }
+  .af-status {
+    background: #f3f9fe;
+    border: 1px solid #c5e0fa;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    color: #014486;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .af-status .pulse-dot {
+    width: 8px; height: 8px;
+    background: #2e844a;
+    border-radius: 50%;
+    animation: dotPulse 1.5s infinite;
+  }
+  @keyframes dotPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .af-status.idle .pulse-dot { background: #706e6b; animation: none; }
+
+  .af-reasoning-step {
+    background: white;
+    border: 1px solid #dddbda;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 8px;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: stepIn 0.4s forwards;
+  }
+  @keyframes stepIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .af-step-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #080707;
+    margin-bottom: 6px;
+  }
+  .af-step-num {
+    width: 18px; height: 18px;
+    background: #032D60;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: bold;
+  }
+  .af-step-num.thinking {
+    background: #fafaf9;
+    color: #032D60;
+    border: 1.5px solid #032D60;
+    font-size: 0;
+  }
+  .af-step-num.thinking::after {
+    content: '';
+    width: 8px; height: 8px;
+    border: 1.5px solid #032D60;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .af-step-num.draft { background: #c98a16; }
+  .af-step-num.resolved { background: #2e844a; }
+  .af-step-label {
+    font-size: 11px;
+    color: #706e6b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  .af-step-body {
+    font-size: 12px;
+    color: #444;
+    line-height: 1.5;
+    padding-left: 26px;
+  }
+  .af-step-body .tag {
+    display: inline-block;
+    background: #ecf5fe;
+    color: #014486;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    margin: 2px 2px 2px 0;
+  }
+  .af-step-body .tag.success { background: #e3f3e9; color: #2e844a; }
+  .af-step-body .tag.warning { background: #fef1cd; color: #8c4a00; }
+  .af-step-body .tag.danger { background: #fde2e2; color: #ba0517; }
+  .af-step-body code {
+    background: #f3f3f3;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 11px;
+  }
+  .af-email-preview {
+    background: #fafaf9;
+    border: 1px solid #dddbda;
+    border-radius: 4px;
+    padding: 10px 12px;
+    margin-top: 8px;
+    margin-left: 26px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .af-email-preview.draft-only {
+    background: #fef9e7;
+    border-color: #f6dc88;
+  }
+  .af-email-preview.draft-only::before {
+    content: 'DRAFT, awaiting human review';
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    color: #8c4a00;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed #c98a16;
+  }
+  .af-email-preview .email-field {
+    color: #706e6b;
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+  .af-email-preview .email-field strong { color: #444; font-weight: 600; }
+  .af-email-preview .email-body {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #e5e5e5;
+    color: #080707;
+    white-space: pre-wrap;
+  }
+
+  /* ============ FOOTER UTILITY BAR ============ */
+  .utility-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #f3f3f3;
+    border-top: 1px solid #dddbda;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    font-size: 12px;
+    color: #444;
+    gap: 16px;
+  }
+  .utility-bar .util-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+  .utility-bar .util-item:hover { color: #0176d3; }
+
+  /* Status badges */
+  .status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .status-new { background: #ecf5fe; color: #014486; }
+  .status-progress { background: #fef1cd; color: #8c4a00; }
+  .status-needs { background: #ffdfd6; color: #ba0517; }
+  .status-overdue { background: #fde2e2; color: #ba0517; }
+  .status-resolved { background: #e3f3e9; color: #2e844a; }
+  .status-draft { background: #fef1cd; color: #8c4a00; }
+
+  /* ============ PRESENTATION MODE TABS ============ */
+  .mode-tabs {
+    background: linear-gradient(135deg, #032D60 0%, #1798C1 100%);
+    padding: 10px 16px 0;
+    display: flex;
+    gap: 4px;
+    align-items: flex-end;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .mode-tab {
+    background: rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.85);
+    border: none;
+    padding: 10px 22px;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: inherit;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.15s;
+  }
+  .mode-tab:hover { background: rgba(255,255,255,0.25); color: white; }
+  .mode-tab.active {
+    background: #f3f3f3;
+    color: #032D60;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+  }
+  .mode-tab .tab-num {
+    width: 22px; height: 22px;
+    background: rgba(255,255,255,0.25);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .mode-tab.active .tab-num {
+    background: #032D60;
+    color: white;
+  }
+  .mode-tab .tab-hint {
+    font-size: 11px;
+    opacity: 0.7;
+    font-weight: 500;
+    margin-left: 4px;
+  }
+  .mode-tab.active .tab-hint { color: #1798C1; opacity: 1; }
+
+  /* ============ OVERVIEW MODE ============ */
+  .overview-mode { display: none; min-height: calc(100vh - 88px); background: #f7f8fa; padding: 32px 24px 64px; }
+  .overview-mode.active { display: block; }
+  .demo-mode { display: block; }
+  .demo-mode.hidden { display: none; }
+
+  .ov-container { max-width: 1100px; margin: 0 auto; }
+
+  .ov-header {
+    background: linear-gradient(135deg, #032D60 0%, #1798C1 100%);
+    color: white;
+    padding: 28px 36px;
+    border-radius: 12px 12px 0 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .ov-header::after {
+    content: '';
+    position: absolute;
+    top: -40%; right: -10%;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .ov-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+    position: relative;
+  }
+  .ov-header .ov-sub {
+    font-size: 14px;
+    opacity: 0.92;
+    position: relative;
+  }
+
+  .ov-stats {
+    background: white;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 18px 28px;
+    border-left: 1px solid #e5e7eb;
+    border-right: 1px solid #e5e7eb;
+  }
+  .ov-stat { border-right: 1px solid #f0f0f0; padding-right: 16px; }
+  .ov-stat:last-child { border-right: none; }
+  .ov-stat .num { font-size: 24px; font-weight: 700; color: #032D60; letter-spacing: -0.5px; }
+  .ov-stat .lbl { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+  .ov-journey {
+    background: white;
+    padding: 28px 36px;
+    border-left: 1px solid #e5e7eb;
+    border-right: 1px solid #e5e7eb;
+    border-top: 1px solid #f0f0f0;
+  }
+  .ov-journey h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 6px;
+  }
+  .ov-journey .ov-journey-sub {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 24px;
+  }
+  .journey-path {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    position: relative;
+  }
+  .journey-step {
+    text-align: center;
+    padding: 0 8px;
+    position: relative;
+  }
+  .journey-step:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: -8px;
+    top: 18px;
+    color: #c5c5c5;
+    font-size: 18px;
+  }
+  .journey-circle {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+  }
+  .journey-circle.platform { background: #999; }
+  .journey-circle.agentforce { background: #032D60; }
+  .journey-circle.human { background: #f88962; }
+  .journey-step h4 {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+  .journey-step .actor {
+    font-size: 10px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .journey-step p {
+    font-size: 11px;
+    color: #444;
+    line-height: 1.45;
+  }
+  .ov-legend {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px dashed #e5e7eb;
+    flex-wrap: wrap;
+  }
+  .ov-legend .lg-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #555;
+  }
+  .ov-legend .lg-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  .ov-legend .lg-dot.platform { background: #999; }
+  .ov-legend .lg-dot.agentforce { background: #032D60; }
+  .ov-legend .lg-dot.human { background: #f88962; }
+
+  .ov-patterns {
+    background: white;
+    padding: 28px 36px;
+    border-left: 1px solid #e5e7eb;
+    border-right: 1px solid #e5e7eb;
+    border-top: 1px solid #f0f0f0;
+  }
+  .ov-patterns h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 6px;
+  }
+  .ov-patterns .ov-patterns-sub {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 18px;
+  }
+  .pattern-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .pattern {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 14px 16px;
+    background: #fafbfc;
+  }
+  .pattern.green { border-left: 3px solid #2e844a; }
+  .pattern.yellow { border-left: 3px solid #c98a16; }
+  .pattern.red { border-left: 3px solid #ba0517; }
+  .pattern h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+  .pattern .pattern-badge {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: inline-block;
+  }
+  .pattern.green .pattern-badge { background: #e3f3e9; color: #2e844a; }
+  .pattern.yellow .pattern-badge { background: #fef1cd; color: #8c4a00; }
+  .pattern.red .pattern-badge { background: #fde2e2; color: #ba0517; }
+  .pattern p {
+    font-size: 11.5px;
+    color: #444;
+    line-height: 1.5;
+  }
+
+  .ov-roi {
+    background: linear-gradient(135deg, #032D60 0%, #1798C1 100%);
+    color: white;
+    padding: 24px 36px;
+    border-left: 1px solid #e5e7eb;
+    border-right: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+    border-radius: 0 0 12px 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .ov-roi::before {
+    content: '';
+    position: absolute;
+    bottom: -30%; left: -10%;
+    width: 250px; height: 250px;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .ov-roi h2 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-bottom: 14px;
+    opacity: 0.92;
+    position: relative;
+  }
+  .ov-roi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    position: relative;
+  }
+  .ov-roi-stat .big {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 2px;
+  }
+  .ov-roi-stat .desc {
+    font-size: 12px;
+    opacity: 0.92;
+    line-height: 1.4;
+  }
+  .ov-roi-note {
+    font-size: 10px;
+    opacity: 0.7;
+    margin-top: 14px;
+    font-style: italic;
+    position: relative;
+  }
+
+  .ov-cta {
+    background: white;
+    padding: 20px 36px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .ov-cta .cta-text {
+    font-size: 14px;
+    color: #1a1a1a;
+  }
+  .ov-cta .cta-text strong { color: #032D60; }
+  .ov-cta-btn {
+    background: linear-gradient(135deg, #032D60 0%, #1798C1 100%);
+    color: white;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.15s;
+    flex-shrink: 0;
+  }
+  .ov-cta-btn:hover { transform: translateY(-1px); }
+</style>
+</head>
+<body>
+
+<!-- MODE TABS (top-level: Overview vs Demo) -->
+<div class="mode-tabs">
+  <button class="mode-tab active" id="mode-overview" onclick="switchMode('overview')">
+    <span class="tab-num">1</span>
+    Overview
+    <span class="tab-hint">Start here</span>
+  </button>
+  <button class="mode-tab" id="mode-demo" onclick="switchMode('demo')">
+    <span class="tab-num">2</span>
+    Live Demo
+    <span class="tab-hint">See it work</span>
+  </button>
+</div>
+
+<!-- ============ OVERVIEW MODE ============ -->
+<div class="overview-mode active" id="overview-mode">
+  <div class="ov-container">
+
+    <div class="ov-header">
+      <h1>Agentforce for Customer Care</h1>
+      <div class="ov-sub">How autonomous case handling would work for us, in one screen.</div>
+    </div>
+
+    <div class="ov-stats">
+      <div class="ov-stat">
+        <div class="num">25-35%</div>
+        <div class="lbl">AHT reduction</div>
+      </div>
+      <div class="ov-stat">
+        <div class="num">27%</div>
+        <div class="lbl">Case deflection rate</div>
+      </div>
+      <div class="ov-stat">
+        <div class="num">20-35%</div>
+        <div class="lbl">Agent turnover reduction</div>
+      </div>
+      <div class="ov-stat">
+        <div class="num">Days</div>
+        <div class="lbl">Not weeks to deploy</div>
+      </div>
+    </div>
+
+    <div class="ov-journey">
+      <h2>The journey, end to end</h2>
+      <div class="ov-journey-sub">A case comes in, gets triaged, gets routed, gets resolved. Humans stay in control of every approval.</div>
+      <div class="journey-path">
+        <div class="journey-step">
+          <div class="journey-circle platform">📧</div>
+          <div class="actor">Service Cloud</div>
+          <h4>Customer emails in</h4>
+          <p>Email-to-Case auto-creates the case in our queue.</p>
+        </div>
+        <div class="journey-step">
+          <div class="journey-circle agentforce">✦</div>
+          <div class="actor">Agentforce</div>
+          <h4>Reads and classifies</h4>
+          <p>Identifies what the customer needs and sets the case fields.</p>
+        </div>
+        <div class="journey-step">
+          <div class="journey-circle agentforce">✦</div>
+          <div class="actor">Agentforce</div>
+          <h4>Responds or drafts</h4>
+          <p>Sends the customer reply directly, or drafts it for a human depending on case sensitivity.</p>
+        </div>
+        <div class="journey-step">
+          <div class="journey-circle human">👤</div>
+          <div class="actor">Human Agent</div>
+          <h4>Reviews and approves</h4>
+          <p>Picks up the case with everything already prepped. Documents attached, fields set.</p>
+        </div>
+        <div class="journey-step">
+          <div class="journey-circle agentforce">✦</div>
+          <div class="actor">Agentforce</div>
+          <h4>Closes the loop</h4>
+          <p>Sends the final confirmation email and closes the case.</p>
+        </div>
+      </div>
+      <div class="ov-legend">
+        <div class="lg-item"><span class="lg-dot platform"></span> Service Cloud (already in production)</div>
+        <div class="lg-item"><span class="lg-dot agentforce"></span> Agentforce (the new layer)</div>
+        <div class="lg-item"><span class="lg-dot human"></span> Human Agent (judgment work)</div>
+      </div>
+    </div>
+
+    <div class="ov-patterns">
+      <h2>Three case patterns, three ways Agentforce handles them</h2>
+      <div class="ov-patterns-sub">Same platform, different operating modes depending on the case type. The live demo walks through one of each.</div>
+      <div class="pattern-grid">
+        <div class="pattern green">
+          <span class="pattern-badge">Strong fit</span>
+          <h4>Transfer of Ownership</h4>
+          <p>Agentforce intakes, classifies, requests documents, routes to human for approval. Routine work removed, human owns the decision.</p>
+        </div>
+        <div class="pattern red">
+          <span class="pattern-badge">Draft for review</span>
+          <h4>Drive system warning (safety)</h4>
+          <p>Agentforce detects, routes immediately to senior agent, drafts a proposed response. Nothing automated goes to the customer. Human edits and sends.</p>
+        </div>
+        <div class="pattern green">
+          <span class="pattern-badge">Full resolution</span>
+          <h4>Mobile app question</h4>
+          <p>Common question grounded in the knowledge base. Agentforce answers and closes the case on its own. No human touch needed.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="ov-roi">
+      <h2>What this looks like at queue scale, from real Agentforce deployments</h2>
+      <div class="ov-roi-grid">
+        <div class="ov-roi-stat">
+          <div class="big">25-35%</div>
+          <div class="desc">Average handle time reduction. The metric our team already tracks.</div>
+        </div>
+        <div class="ov-roi-stat">
+          <div class="big">27%</div>
+          <div class="desc">Cases fully resolved by Agentforce without ever reaching a human.</div>
+        </div>
+        <div class="ov-roi-stat">
+          <div class="big">47%</div>
+          <div class="desc">Holiday backlog reduction at one major retailer after Agentforce setup.</div>
+        </div>
+      </div>
+      <div class="ov-roi-note">Sources: Bluprintx implementation data, Salesforce Einstein Bots performance data, Salesforce Agentforce metrics. Lucid-specific numbers will be measured during the 30-day trial. Trial is free in a sandbox. Setup is days, not weeks.</div>
+    </div>
+
+    <div class="ov-cta">
+      <div class="cta-text">
+        <strong>Ready to see it work?</strong> The live demo lets you pick a case type and watch Agentforce handle it inside Salesforce.
+      </div>
+      <button class="ov-cta-btn" onclick="switchMode('demo')">
+        See the live demo →
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ DEMO MODE ============ -->
+<div class="demo-mode" id="demo-mode" style="display:none;">
+
+<!-- GLOBAL HEADER -->
+<div class="global-header">
+  <div class="sf-logo"></div>
+  <div class="global-search">Search...</div>
+  <div class="global-icons">
+    <div class="icon-btn">★</div>
+    <div class="icon-btn">+</div>
+    <div class="icon-btn">☁</div>
+    <div class="icon-btn">?</div>
+    <div class="icon-btn">🔔<span class="notif-badge">2</span></div>
+    <div class="icon-btn">👤</div>
+  </div>
+</div>
+
+<!-- APP HEADER -->
+<div class="app-header">
+  <div class="app-launcher"></div>
+  <div class="app-name">Lucid Customer Care</div>
+  <div class="nav-tabs">
+    <div class="nav-tab reports-tab">
+      Reports
+      <span style="color:#706e6b;font-size:10px;">▾</span>
+    </div>
+    <div class="nav-tab active" id="tab-queue" onclick="showQueue()">
+      <span class="tab-icon">📊</span>
+      Customer Care Qu...
+      <span style="font-size:10px;color:#706e6b;">▾</span>
+      <span class="tab-close">×</span>
+    </div>
+    <div class="nav-tab" id="tab-case" style="display:none;" onclick="showCase()">
+      <span class="tab-icon">📁</span>
+      <span id="tab-case-num">01268XXX</span>...
+      <span style="font-size:10px;color:#706e6b;">▾</span>
+      <span class="tab-close" onclick="event.stopPropagation();closeCase()">×</span>
+    </div>
+  </div>
+</div>
+
+<!-- DEMO CONTROL STRIP -->
+<div class="demo-strip">
+  <span class="demo-label">DEMO</span>
+  <div class="demo-info">
+    <strong>Pick a use case to simulate.</strong> Each one shows a different way Agentforce handles a case.
+  </div>
+  <div class="case-selector">
+    <button class="case-btn active" id="btn-too" onclick="runUseCase('too')">
+      <span class="dot green"></span> Transfer of Ownership
+    </button>
+    <button class="case-btn" id="btn-drive" onclick="runUseCase('drive')">
+      <span class="dot red"></span> Drive System Warning
+    </button>
+    <button class="case-btn" id="btn-charging" onclick="runUseCase('charging')">
+      <span class="dot green"></span> Mobile App Question
+    </button>
+  </div>
+  <button class="reset-btn" onclick="resetDemo()">↻ Reset</button>
+</div>
+
+<!-- REPORT VIEW -->
+<div class="report-view" id="report-view">
+  <div class="report-container">
+    <div class="report-header">
+      <div class="report-title">
+        <div class="report-icon">📊</div>
+        <div>
+          <div class="breadcrumb">Report: Cases</div>
+          <h1>Customer Care Queue Cases</h1>
+        </div>
+      </div>
+      <div class="report-actions">
+        <button class="btn">✎ Enable Field Editing</button>
+        <button class="btn btn-icon">🔍</button>
+        <button class="btn">📊 Add Chart</button>
+        <button class="btn btn-icon">⏷</button>
+        <button class="btn btn-icon">⟳</button>
+        <button class="btn">Edit ▾</button>
+      </div>
+    </div>
+
+    <div class="report-meta">
+      <div class="meta-item">
+        <span class="label">Total Records</span>
+        <span class="value" id="total-records">535</span>
+      </div>
+      <div class="meta-item">
+        <span class="label">Average Age</span>
+        <span class="value">10.535</span>
+      </div>
+    </div>
+
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><span class="checkbox"></span> <span class="col-header">Case Owner <span class="col-arrow">↑▾</span></span></th>
+            <th><div class="col-header">Status <span class="col-arrow">▾</span></div></th>
+            <th><div class="col-header">Subject <span class="col-arrow">▾</span></div></th>
+            <th><div class="col-header">Case Reason <span class="col-arrow">▾</span></div></th>
+            <th><div class="col-header">Subreason <span class="col-arrow">▾</span></div></th>
+            <th><div class="col-header">Opened Date <span class="col-arrow">▾</span></div></th>
+            <th><div class="col-header">Case Number <span class="col-arrow">▾</span></div></th>
+            <th><div class="col-header">Date/Time Opened <span class="col-arrow">▾</span></div></th>
+            <th><div class="col-header">Age ↑ <span class="col-arrow">▾</span></div></th>
+            <th><div class="col-header">Case Origin <span class="col-arrow">▾</span></div></th>
+            <th><div class="col-header">Type <span class="col-arrow">▾</span></div></th>
+            <th><div class="col-header">Web Email <span class="col-arrow">▾</span></div></th>
+          </tr>
+        </thead>
+        <tbody id="case-rows"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- CASE DETAIL VIEW -->
+<div class="case-view" id="case-view">
+  <div class="case-header">
+    <div class="case-header-top">
+      <div class="case-title-wrap">
+        <div class="case-icon">📁</div>
+        <div class="case-title-text">
+          <div class="breadcrumb">Case</div>
+          <h1 id="case-subject">[EXTERNAL] Transfer of Ownership Request</h1>
+        </div>
+      </div>
+      <div class="case-header-buttons">
+        <button class="btn">+ Follow</button>
+        <button class="btn">Escalate to FTS</button>
+        <button class="btn">New Mediation Case</button>
+        <button class="btn">Create Service Task</button>
+        <button class="btn btn-icon">▾</button>
+      </div>
+    </div>
+    <div class="case-key-fields">
+      <div class="key-field">
+        <div class="label">Case Owner</div>
+        <div class="value"><a id="case-owner">Customer Care</a></div>
+      </div>
+      <div class="key-field">
+        <div class="label">Asset</div>
+        <div class="value"><a id="case-asset">50EA1GBA1PA00XXXX</a></div>
+      </div>
+      <div class="key-field">
+        <div class="label">Type</div>
+        <div class="value">Support</div>
+      </div>
+      <div class="key-field">
+        <div class="label">Escalated</div>
+        <div class="value"><span class="checkbox"></span></div>
+      </div>
+      <div class="key-field">
+        <div class="label">Status</div>
+        <div class="value" id="case-status">New</div>
+      </div>
+      <div class="key-field">
+        <div class="label">Case Reason</div>
+        <div class="value" id="case-reason">,</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="case-body">
+    <div class="case-tabs-wrap">
+      <div class="case-tabs">
+        <div class="case-tab active">Details</div>
+        <div class="case-tab">Related</div>
+      </div>
+      <div class="action-bar">
+        <div class="action-tab active">Escalate to FTS</div>
+        <div class="action-tab">Create Service T...</div>
+        <div class="action-tab">Email</div>
+        <div class="action-tab">Post</div>
+        <div class="action-tab">Log Feedback</div>
+        <div class="action-tab">Set Auto-Close</div>
+        <div class="action-tab">New Mediation ...</div>
+        <div class="action-tab">Create Repair W...</div>
+      </div>
+
+      <div class="detail-section">
+        <h3>Customer Information</h3>
+        <div class="detail-grid">
+          <div class="detail-field">
+            <div class="label">Asset</div>
+            <div class="value"><a id="detail-asset">,</a></div>
+          </div>
+          <div class="detail-field">
+            <div class="label">Contact Phone</div>
+            <div class="value">📞 <span id="detail-phone">,</span></div>
+          </div>
+          <div class="detail-field">
+            <div class="label">Contact Name</div>
+            <div class="value"><a id="detail-contact">,</a></div>
+          </div>
+          <div class="detail-field">
+            <div class="label">Contact Email</div>
+            <div class="value"><a id="detail-email">,</a></div>
+          </div>
+          <div class="detail-field">
+            <div class="label">Account Name</div>
+            <div class="value"><a id="detail-account">,</a></div>
+          </div>
+          <div class="detail-field">
+            <div class="label">[D] Preferred Language</div>
+            <div class="value">English</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h3>Case Details</h3>
+        <div class="detail-grid">
+          <div class="detail-field">
+            <div class="label">Subject</div>
+            <div class="value" id="detail-subject">,</div>
+          </div>
+          <div class="detail-field">
+            <div class="label">Case Owner</div>
+            <div class="value"><a id="detail-owner">Customer Care</a></div>
+          </div>
+          <div class="detail-field" style="grid-column:1;">
+            <div class="label">Description</div>
+            <div class="value" style="white-space:pre-wrap;" id="detail-description">,</div>
+          </div>
+          <div class="detail-field">
+            <div class="label">Status</div>
+            <div class="value" id="detail-status">New</div>
+          </div>
+          <div class="detail-field">
+            <div class="label">Case Number</div>
+            <div class="value" id="detail-case-num">,</div>
+          </div>
+          <div class="detail-field">
+            <div class="label">Internal Comments</div>
+            <div class="value">,</div>
+          </div>
+          <div class="detail-field">
+            <div class="label">Case Origin</div>
+            <div class="value">Email - customercare@</div>
+          </div>
+          <div class="detail-field">
+            <div class="label">Type</div>
+            <div class="value">Support</div>
+          </div>
+          <div class="detail-field">
+            <div class="label">Priority</div>
+            <div class="value" id="detail-priority">Medium</div>
+          </div>
+          <div class="detail-field">
+            <div class="label">Case Reason</div>
+            <div class="value" id="detail-reason">,</div>
+          </div>
+          <div class="detail-field">
+            <div class="label">Resolution Reason</div>
+            <div class="value" id="detail-resolution">,</div>
+          </div>
+          <div class="detail-field">
+            <div class="label">Subreason</div>
+            <div class="value" id="detail-subreason">,</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-panel">
+      <div class="related-card">
+        <div class="related-grid">
+          <a>🟦 Talkdesk Activities (0)</a>
+          <a>🟧 Related Cases (0)</a>
+          <a>🟪 Articles (0)</a>
+          <a>🟩 Chat Transcripts (0)</a>
+          <a>🟢 Voice Calls (0)</a>
+          <a>🟦 Messaging Sessions (0)</a>
+          <a>🟠 Customer Feedback (0)</a>
+          <a>🟦 Approval History (0)</a>
+        </div>
+      </div>
+
+      <div class="activity-card">
+        <div class="activity-tabs">
+          <div class="activity-tab active">All Updates</div>
+          <div class="activity-tab">Emails</div>
+          <div class="activity-tab">Call Logs</div>
+          <div class="activity-tab">Status Changes</div>
+        </div>
+        <div id="feed-items"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENTFORCE TRIGGER & PANEL -->
+<button class="af-trigger" id="af-trigger" onclick="toggleAFPanel()">
+  <span class="af-sparkle">✦</span>
+  <span>Agentforce</span>
+</button>
+
+<div class="af-panel" id="af-panel">
+  <div class="af-panel-header">
+    <div class="af-brand">
+      <div class="af-logo">✦</div>
+      <div>
+        <h2>Agentforce</h2>
+        <div class="af-sub" id="af-subtitle">Service Agent, Customer Care</div>
+      </div>
+    </div>
+    <button class="af-close" onclick="toggleAFPanel()">×</button>
+  </div>
+  <div class="af-content" id="af-content">
+    <div class="af-status idle" id="af-status">
+      <div class="pulse-dot"></div>
+      <span id="af-status-text">Agent idle, monitoring inbound cases</span>
+    </div>
+    <div id="af-steps">
+      <div id="af-empty" style="text-align:center;color:#706e6b;padding:32px 16px;font-size:13px;">
+        <div style="font-size:32px;margin-bottom:12px;opacity:0.4;">✦</div>
+        <p style="margin-bottom:8px;font-weight:600;color:#444;">Agentforce is monitoring the Customer Care queue.</p>
+        <p style="font-size:12px;">Pick a use case from the top of the screen. Each one shows a different way Agentforce handles a case, from full automation to draft-and-review for sensitive cases.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UTILITY BAR -->
+<div class="utility-bar">
+  <div class="util-item">📞 Phone</div>
+  <div class="util-item">💬 Talkdesk Workspace</div>
+  <div class="util-item">⚪ Omni-Channel (Offline)</div>
+  <div class="util-item">⏱ History</div>
+  <div class="util-item">📓 Notes</div>
+</div>
+
+</div><!-- end demo-mode -->
+
+<script>
+  // ============ MODE SWITCHING ============
+  function switchMode(mode) {
+    const overview = document.getElementById('overview-mode');
+    const demo = document.getElementById('demo-mode');
+    const tabOverview = document.getElementById('mode-overview');
+    const tabDemo = document.getElementById('mode-demo');
+    const afTrigger = document.getElementById('af-trigger');
+    const utilityBar = document.querySelector('.utility-bar');
+
+    if (mode === 'overview') {
+      overview.classList.add('active');
+      demo.style.display = 'none';
+      tabOverview.classList.add('active');
+      tabDemo.classList.remove('active');
+      if (afTrigger) afTrigger.style.display = 'none';
+      if (utilityBar) utilityBar.style.display = 'none';
+    } else {
+      overview.classList.remove('active');
+      demo.style.display = 'block';
+      tabOverview.classList.remove('active');
+      tabDemo.classList.add('active');
+      if (afTrigger) afTrigger.style.display = 'flex';
+      if (utilityBar) utilityBar.style.display = 'flex';
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ============ STATE ============
+  let demoState = 'idle';
+  let activeUseCase = null;
+
+  // ============ EXISTING CASE DATA ============
+  const existingCases = [
+    { status: 'New', subject: '[EXTERNAL] * VIN: 50EA1GBA0PA002377', reason: '-', subreason: '-', date: '5/20/2026', num: '01268248', time: '5/20/2026 6:38 AM', age: 0, origin: 'Email - customercare@', type: 'Support', email: 'quickfixx@shaw.ca' },
+    { status: 'In Progress', subject: '[EXTERNAL] Towing Invoice - Senno - Lucid Air Touring', reason: '-', subreason: '-', date: '5/18/2026', num: '01266870', time: '5/18/2026 7:24 PM', age: 1, origin: 'Email - customercare@', type: 'Support', email: 'nicholas.senno@gmail.com' },
+    { status: 'Needs Response', subject: '[EXTERNAL] transfer of title', reason: 'Account Management', subreason: 'Secondary Ownership', date: '5/18/2026', num: '01266877', time: '5/18/2026 8:02 PM', age: 1, origin: 'Email - customercare@', type: 'Support', email: 'slcantelme@aol.com' },
+    { status: 'In Progress', subject: '[EXTERNAL] Formal Complaint Regarding Multiple Unresolved Issues', reason: '-', subreason: '-', date: '5/18/2026', num: '01266901', time: '5/18/2026 10:28 PM', age: 1, origin: 'Email - customercare@', type: 'Support', email: 'abbieapolinario@msn.com' },
+    { status: 'In Progress', subject: '[EXTERNAL] Reimbursement Uber - Brock', reason: '-', subreason: '-', date: '5/19/2026', num: '01267079', time: '5/19/2026 5:49 AM', age: 1, origin: 'Email - customercare@', type: 'Support', email: 'brock.niggebrugge@gmail.com' },
+    { status: 'Needs Response', subject: '[EXTERNAL] RE: Vehicle registration', reason: 'Account Management', subreason: 'Secondary Ownership', date: '5/19/2026', num: '01267138', time: '5/19/2026 7:06 AM', age: 1, origin: 'Email - customercare@', type: 'Support', email: 'founas@gi4wd.com' },
+    { status: 'Needs Response', subject: '#MCC | Did not charge | S/N: | Access concerns', reason: 'Lucid Mobile Charger', subreason: 'Intermittent Charging', date: '5/19/2026', num: '01267128', time: '5/19/2026 6:53 AM', age: 1, origin: 'Phone', type: 'Support', email: '-' },
+    { status: 'Needs Response', subject: 'Transfer of Ownership', reason: 'Account Management', subreason: 'Secondary Ownership', date: '5/19/2026', num: '01267102', time: '5/19/2026 6:28 AM', age: 1, origin: 'Phone', type: 'Support', email: '-' },
+    { status: 'In Progress', subject: 'Mobile App Charging Question', reason: 'Account Management', subreason: '-', date: '5/19/2026', num: '01267199', time: '5/19/2026 8:13 AM', age: 1, origin: 'Web', type: 'Support', email: 'mattlang910@hotmail.com' },
+    { status: 'In Progress', subject: '[EXTERNAL] Urgent Escalation - 2025 Lucid Air Disabled by Software Update', reason: '-', subreason: '-', date: '5/19/2026', num: '01267392', time: '5/19/2026 10:32 AM', age: 1, origin: 'Email - customercare@', type: 'Support', email: 'jjimabeck@icloud.com' },
+    { status: 'Overdue', subject: '[EXTERNAL] Bad error msg after charging issues', reason: '-', subreason: '-', date: '5/19/2026', num: '01267548', time: '5/19/2026 12:17 PM', age: 1, origin: 'Email - customercare@', type: 'Support', email: 'charding99@gmail.com' },
+    { status: 'Overdue', subject: '[EXTERNAL] Important - door handle', reason: '-', subreason: '-', date: '5/19/2026', num: '01267672', time: '5/19/2026 2:10 PM', age: 1, origin: 'Email - customercare@', type: 'Support', email: 'michelezipper@gmail.com' },
+    { status: 'Overdue', subject: '[EXTERNAL] Need Key/PIN Reset', reason: '-', subreason: '-', date: '5/19/2026', num: '01267646', time: '5/19/2026 1:39 PM', age: 1, origin: 'Email - customercare@', type: 'Support', email: 'tom.clare@defisolutions.com' },
+  ];
+
+  // ============ THREE USE CASE DEFINITIONS ============
+  const useCases = {
+    too: {
+      label: 'Transfer of Ownership',
+      tier: 'green',
+      outcome: 'Routes to human for document review',
+      newCase: {
+        status: 'New',
+        subject: '[EXTERNAL] Transfer of Ownership - 2024 Lucid Air Touring',
+        reason: '-',
+        subreason: '-',
+        date: '5/20/2026',
+        num: '01268301',
+        time: '5/20/2026 9:43 AM',
+        age: 0,
+        origin: 'Email - customercare@',
+        type: 'Support',
+        email: 'm.reeves@gmail.com',
+        contactName: 'Marcus Reeves',
+        contactPhone: '+1 (602) 555-0142',
+        asset: '50EA1GBA1PA005921',
+        description: `WARNING: This e-mail is sent from outside the organization DO NOT CLICK on any links or open attachments unless you trust the sender
+
+Hi,
+
+I just bought a used 2024 Lucid Air Touring from a private seller and I need to get access to it. The VIN is 50EA1GBA1PA005921. Can you help me get this transferred over to my name?
+
+Thanks,
+Marcus`
+      }
+    },
+    drive: {
+      label: 'Drive System Warning',
+      tier: 'red',
+      outcome: 'Drafts response, human reviews and sends',
+      newCase: {
+        status: 'New',
+        subject: '[EXTERNAL] URGENT - Red warning light, car pulled to side',
+        reason: '-',
+        subreason: '-',
+        date: '5/20/2026',
+        num: '01268302',
+        time: '5/20/2026 9:45 AM',
+        age: 0,
+        origin: 'Email - customercare@',
+        type: 'Support',
+        email: 'd.washington@outlook.com',
+        contactName: 'Denise Washington',
+        contactPhone: '+1 (313) 555-0188',
+        asset: '50EA1TEA1RA003447',
+        description: `WARNING: This e-mail is sent from outside the organization DO NOT CLICK on any links or open attachments unless you trust the sender
+
+Hi, I'm pretty scared right now. I was driving on 696 about 15 minutes ago and a red warning light came on the dash that said something about the drive system. The car started slowing down on its own and I had to pull over to the shoulder. I'm parked in a safe spot but the car won't move forward at all when I press the pedal. I tried turning it off and on but the warning is still there.
+
+What do I do? My VIN is 50EA1TEA1RA003447. This is a 2024 Lucid Air Pure.
+
+Please help.
+
+Denise`
+      }
+    },
+    charging: {
+      label: 'Mobile App Question',
+      tier: 'green',
+      outcome: 'Agentforce fully resolves and closes the case',
+      newCase: {
+        status: 'New',
+        subject: '[EXTERNAL] How do I schedule charging in the app?',
+        reason: '-',
+        subreason: '-',
+        date: '5/20/2026',
+        num: '01268303',
+        time: '5/20/2026 9:47 AM',
+        age: 0,
+        origin: 'Email - customercare@',
+        type: 'Support',
+        email: 'rivera.tj@gmail.com',
+        contactName: 'Tasha Rivera',
+        contactPhone: '+1 (248) 555-0244',
+        asset: '50EA1GBA9PA008812',
+        description: `WARNING: This e-mail is sent from outside the organization DO NOT CLICK on any links or open attachments unless you trust the sender
+
+Hey there,
+
+Quick question. I just got my Air GT delivered last week and I'm trying to set it up to only charge between midnight and 6am when my electricity rates are cheaper. I see the charging tab in the app but I can't figure out how to set a schedule. Is there a setting I'm missing?
+
+Thanks,
+Tasha`
+      }
+    }
+  };
+
+  // ============ RENDER HELPERS ============
+  function statusBadge(status) {
+    const cls = {
+      'New': 'status-new',
+      'In Progress': 'status-progress',
+      'Needs Response': 'status-needs',
+      'Overdue': 'status-overdue',
+      'Resolved': 'status-resolved',
+      'Closed': 'status-resolved',
+      'Awaiting Customer Response': 'status-progress',
+      'Draft Pending Review': 'status-draft'
+    }[status] || 'status-new';
+    return `<span class="status-badge ${cls}">${status}</span>`;
+  }
+
+  function renderQueue(highlightCase = null) {
+    const tbody = document.getElementById('case-rows');
+    let rows = '';
+    const cases = highlightCase ? [highlightCase, ...existingCases] : existingCases;
+    cases.forEach((c, i) => {
+      const isHighlight = highlightCase && i === 0;
+      const rowClass = isHighlight ? 'new-case' : '';
+      const subject = isHighlight
+        ? `<a class="case-link" onclick="openCase()">${c.subject}</a>`
+        : `<a class="case-link">${c.subject}</a>`;
+      rows += `
+        <tr class="${rowClass}" ${isHighlight ? 'onclick="openCase()"' : ''}>
+          <td>${i === 0 ? '<span class="checkbox"></span> <a>Customer Care (' + (highlightCase ? 536 : 535) + ')</a>' : ''}</td>
+          <td>${statusBadge(c.status)}</td>
+          <td>${subject}</td>
+          <td>${c.reason}</td>
+          <td>${c.subreason}</td>
+          <td>${c.date}</td>
+          <td><a>${c.num}</a></td>
+          <td>${c.time}</td>
+          <td>${c.age}</td>
+          <td>${c.origin}</td>
+          <td>${c.type}</td>
+          <td>${c.email === '-' ? '-' : '<a>' + c.email + '</a>'}</td>
+        </tr>
+      `;
+    });
+    tbody.innerHTML = rows;
+    document.getElementById('total-records').textContent = highlightCase ? '536' : '535';
+  }
+  renderQueue();
+
+  // Initialize page in overview mode (Agentforce trigger and utility bar hidden)
+  document.addEventListener('DOMContentLoaded', () => {
+    const afTrigger = document.getElementById('af-trigger');
+    const utilityBar = document.querySelector('.utility-bar');
+    if (afTrigger) afTrigger.style.display = 'none';
+    if (utilityBar) utilityBar.style.display = 'none';
+  });
+
+  // ============ VIEW SWITCHING ============
+  function showQueue() {
+    document.getElementById('report-view').classList.remove('hidden');
+    document.getElementById('case-view').classList.remove('active');
+    document.getElementById('tab-queue').classList.add('active');
+    document.getElementById('tab-case').classList.remove('active');
+  }
+  function showCase() {
+    document.getElementById('report-view').classList.add('hidden');
+    document.getElementById('case-view').classList.add('active');
+    document.getElementById('tab-queue').classList.remove('active');
+    document.getElementById('tab-case').classList.add('active');
+  }
+  function closeCase() {
+    document.getElementById('tab-case').style.display = 'none';
+    showQueue();
+  }
+  function openCase() {
+    const uc = useCases[activeUseCase];
+    if (!uc) return;
+    const c = uc.newCase;
+    document.getElementById('case-subject').textContent = c.subject;
+    document.getElementById('case-asset').textContent = c.asset;
+    document.getElementById('detail-asset').textContent = c.asset;
+    document.getElementById('detail-contact').textContent = c.contactName;
+    document.getElementById('detail-email').textContent = c.email;
+    document.getElementById('detail-account').textContent = c.contactName;
+    document.getElementById('detail-phone').textContent = c.contactPhone;
+    document.getElementById('detail-subject').textContent = c.subject;
+    document.getElementById('detail-description').textContent = c.description;
+    document.getElementById('detail-case-num').textContent = c.num;
+    document.getElementById('tab-case-num').textContent = c.num.slice(0, 7);
+    document.getElementById('tab-case').style.display = 'flex';
+    showCase();
+  }
+
+  // ============ AGENTFORCE PANEL ============
+  function toggleAFPanel() {
+    document.getElementById('af-panel').classList.toggle('open');
+    document.getElementById('af-trigger').classList.remove('pulsing');
+  }
+  function openAFPanel() {
+    document.getElementById('af-panel').classList.add('open');
+    document.getElementById('af-trigger').classList.remove('pulsing');
+  }
+
+  function setAFStatus(text, active = true) {
+    document.getElementById('af-status').classList.toggle('idle', !active);
+    document.getElementById('af-status-text').textContent = text;
+  }
+
+  function setAFSubtitle(text) {
+    document.getElementById('af-subtitle').textContent = text;
+  }
+
+  function addStep(num, label, body, delay = 0, thinking = false, variant = null) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const stepsEl = document.getElementById('af-steps');
+        const empty = document.getElementById('af-empty');
+        if (empty) empty.remove();
+
+        const step = document.createElement('div');
+        step.className = 'af-reasoning-step';
+        const variantClass = variant ? ' ' + variant : '';
+        step.innerHTML = `
+          <div class="af-step-header">
+            <span class="af-step-num${thinking ? ' thinking' : variantClass}">${thinking ? '' : num}</span>
+            <span class="af-step-label">${label}</span>
+          </div>
+          <div class="af-step-body">${body}</div>
+        `;
+        stepsEl.appendChild(step);
+        document.getElementById('af-content').scrollTop = document.getElementById('af-content').scrollHeight;
+        resolve(step);
+      }, delay);
+    });
+  }
+
+  function clearSteps() {
+    document.getElementById('af-steps').innerHTML = '';
+  }
+
+  // ============ FEED HELPERS ============
+  function addFeedItem(author, body, iconColor = '#5cb85c', isAgentforce = false) {
+    const feed = document.getElementById('feed-items');
+    const item = document.createElement('div');
+    item.className = 'feed-item';
+    const iconStyle = isAgentforce
+      ? 'background:linear-gradient(135deg, #032D60 0%, #1798C1 100%);'
+      : `background:${iconColor};`;
+    const iconChar = isAgentforce ? '✦' : '📧';
+    item.innerHTML = `
+      <div class="feed-meta">
+        <span class="feed-icon" style="${iconStyle}">${iconChar}</span>
+        <span class="author">${author}</span>
+        <span class="timestamp">Just now</span>
+      </div>
+      <div class="feed-body">${body}</div>
+    `;
+    feed.insertBefore(item, feed.firstChild);
+  }
+
+  function resetFeed(initialMessage) {
+    document.getElementById('feed-items').innerHTML = `
+      <div class="feed-item">
+        <div class="feed-meta">
+          <span class="feed-icon" style="background:#5cb85c;">📧</span>
+          <span class="author">${initialMessage.author}</span>
+          <span class="timestamp">Just now</span>
+        </div>
+        <div class="feed-body">${initialMessage.body}</div>
+      </div>
+    `;
+  }
+
+  // ============ USE CASE RUNNER ============
+  async function runUseCase(name) {
+    if (demoState === 'running') return;
+    demoState = 'running';
+    activeUseCase = name;
+
+    document.querySelectorAll('.case-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + (name === 'too' ? 'too' : name === 'drive' ? 'drive' : 'charging')).classList.add('active');
+
+    closeCase();
+    clearSteps();
+
+    const uc = useCases[name];
+    setAFSubtitle('Service Agent, ' + uc.label);
+
+    setTimeout(() => {
+      renderQueue(uc.newCase);
+    }, 600);
+
+    setTimeout(() => {
+      openAFPanel();
+      setAFStatus('Processing new inbound case...', true);
+      document.getElementById('af-trigger').classList.add('pulsing');
+    }, 1400);
+
+    if (name === 'too') {
+      await runTransferOfOwnership(uc);
+    } else if (name === 'drive') {
+      await runDriveSystem(uc);
+    } else if (name === 'charging') {
+      await runChargingQuestion(uc);
+    }
+
+    demoState = 'done';
+  }
+
+  // ============ TOO USE CASE ============
+  async function runTransferOfOwnership(uc) {
+    const c = uc.newCase;
+
+    await addStep(1, 'Inbound case detected', `
+      New case created from <code>customercare@lucidmotors.com</code><br>
+      Case number: <code>${c.num}</code><br>
+      From: <code>${c.email}</code>
+    `, 2400);
+
+    const step2 = await addStep(2, 'Classifying case intent', `
+      <span style="color:#706e6b;">Analyzing subject line and email body...</span>
+    `, 1400, true);
+    await new Promise(r => setTimeout(r, 1800));
+    step2.querySelector('.af-step-num').classList.remove('thinking');
+    step2.querySelector('.af-step-num').textContent = '2';
+    step2.querySelector('.af-step-body').innerHTML = `
+      Detected intent: <span class="tag">Transfer of Ownership</span><br>
+      Customer purchased a used Lucid Air Touring (VIN ending in <code>5921</code>) from a private seller and needs to be set up as the new owner.<br>
+      <span class="tag success">Confidence: 96%</span>
+    `;
+
+    await addStep(3, 'Updating case fields', `
+      <span class="tag">Case Reason → Account Management</span>
+      <span class="tag">Subreason → Secondary Ownership</span>
+      <span class="tag">Priority → Medium</span>
+      <span class="tag">Status → Awaiting Customer Response</span>
+    `, 1400);
+
+    setTimeout(() => {
+      document.getElementById('case-status').textContent = 'Awaiting Customer Response';
+      document.getElementById('case-reason').textContent = 'Account Management';
+      document.getElementById('detail-status').textContent = 'Awaiting Customer Response';
+      document.getElementById('detail-reason').textContent = 'Account Management';
+      document.getElementById('detail-subreason').textContent = 'Secondary Ownership';
+    }, 100);
+
+    const step4 = await addStep(4, 'Drafting and sending response', `
+      <span style="color:#706e6b;">Generating email using Transfer of Ownership template grounded in Lucid's portal setup procedure...</span>
+    `, 1400, true);
+    await new Promise(r => setTimeout(r, 2200));
+    step4.querySelector('.af-step-num').classList.remove('thinking');
+    step4.querySelector('.af-step-num').textContent = '4';
+    step4.querySelector('.af-step-body').innerHTML = `
+      Email sent from <code>customercare@lucidmotors.com</code>:
+      <div class="af-email-preview" style="margin-left:0;margin-top:8px;">
+        <div class="email-field"><strong>To:</strong> ${c.email}</div>
+        <div class="email-field"><strong>Subject:</strong> Re: Transfer of Ownership [Case ${c.num}]</div>
+        <div class="email-body">Hi Marcus,
+
+Thanks for reaching out, and welcome to Lucid.
+
+To get you set up as the new owner of your 2024 Lucid Air Touring (VIN ending in 5921), there are two steps:
+
+Step 1: Create your Lucid owner's portal account
+Go to owners.lucidmotors.com and sign up using the email address you want associated with your vehicle. You'll receive a verification email. Confirm it before moving to step 2.
+
+Step 2: Send us your documents
+Once your portal account is verified, reply to this email with the following three documents attached:
+
+  1. A copy of your driver's license
+  2. The vehicle registration in your name
+  3. The bill of sale from the previous owner
+
+Our team will verify everything and link your vehicle to your portal account within one business day.
+
+Best,
+Lucid Customer Care
+Case #${c.num}</div>
+      </div>
+    `;
+
+    await addStep(5, 'Awaiting customer reply', `
+      <span class="tag warning">Status → Awaiting Customer Response</span>
+      <div style="margin-top:6px;color:#706e6b;font-size:11px;">When the customer replies with documents, Agentforce will route the case to a Tier 2 agent with Account Management skill for human review and approval.</div>
+    `, 1600);
+
+    await addStep(6, 'Complete', `
+      <span class="tag success">✓ Case triaged in 4.2 seconds</span><br>
+      <span class="tag success">✓ Customer responded to autonomously</span><br>
+      <span class="tag success">✓ Human handoff scheduled on reply</span>
+      <div style="margin-top:8px;padding:8px;background:#e3f3e9;border-radius:4px;color:#2e844a;font-size:11px;">
+        <strong>Outcome:</strong> Routine intake work removed. When the case reaches a human agent, the documents will already be attached and the customer will have been responded to.
+      </div>
+    `, 1400, false, 'resolved');
+
+    setTimeout(() => {
+      setAFStatus('Idle, monitoring inbound cases', false);
+      document.getElementById('af-trigger').classList.remove('pulsing');
+      addFeedItem('Agentforce', 'Sent customer reply with portal setup instructions and required document list. Case status updated to Awaiting Customer Response.', '#fff', true);
+    }, 1200);
+  }
+
+  // ============ DRIVE SYSTEM USE CASE ============
+  async function runDriveSystem(uc) {
+    const c = uc.newCase;
+
+    await addStep(1, 'Inbound case detected', `
+      New case created from <code>customercare@lucidmotors.com</code><br>
+      Case number: <code>${c.num}</code><br>
+      From: <code>${c.email}</code>
+    `, 2400);
+
+    const step2 = await addStep(2, 'Classifying case intent', `
+      <span style="color:#706e6b;">Analyzing subject line and email body for safety signals...</span>
+    `, 1400, true);
+    await new Promise(r => setTimeout(r, 2000));
+    step2.querySelector('.af-step-num').classList.remove('thinking');
+    step2.querySelector('.af-step-num').textContent = '2';
+    step2.querySelector('.af-step-body').innerHTML = `
+      Detected intent: <span class="tag danger">Drive System Fault (Red Telltale)</span><br>
+      Safety keywords flagged: <code>red warning</code>, <code>slowing down</code>, <code>pulled over</code>, <code>won't move</code><br>
+      Customer is stranded on the side of a freeway.<br>
+      <span class="tag danger">Severity: HIGH, immediate human required</span>
+    `;
+
+    await addStep(3, 'Updating case fields and flagging priority', `
+      <span class="tag">Case Reason → Tell-Tale</span>
+      <span class="tag">Subreason → Drive System Fault Red</span>
+      <span class="tag danger">Priority → URGENT</span>
+      <span class="tag">Status → Draft Pending Review</span>
+    `, 1400);
+
+    setTimeout(() => {
+      document.getElementById('case-status').textContent = 'Draft Pending Review';
+      document.getElementById('case-reason').textContent = 'Tell-Tale';
+      document.getElementById('detail-status').textContent = 'Draft Pending Review';
+      document.getElementById('detail-reason').textContent = 'Tell-Tale';
+      document.getElementById('detail-subreason').textContent = 'Drive System Fault Red';
+      document.getElementById('detail-priority').textContent = 'URGENT';
+    }, 100);
+
+    await addStep(4, 'Routing to senior agent immediately', `
+      <span class="tag">Skill required → Tier 2 Roadside</span>
+      <span class="tag">Routing → Direct assignment via Omni-Channel</span>
+      <div style="margin-top:6px;color:#706e6b;font-size:11px;">Pushed to next available Tier 2 agent. Case is not sitting in the general queue.</div>
+    `, 1500);
+
+    const step5 = await addStep(5, 'Drafting response for human review', `
+      <span style="color:#706e6b;">Drafting response. Will not send without human approval.</span>
+    `, 1400, true);
+    await new Promise(r => setTimeout(r, 2400));
+    step5.querySelector('.af-step-num').classList.remove('thinking');
+    step5.querySelector('.af-step-num').classList.add('draft');
+    step5.querySelector('.af-step-num').textContent = '5';
+    step5.querySelector('.af-step-body').innerHTML = `
+      Draft created and attached to case. Human agent must review and edit before anything is sent to the customer:
+      <div class="af-email-preview draft-only" style="margin-left:0;margin-top:8px;">
+        <div class="email-field"><strong>To:</strong> ${c.email}</div>
+        <div class="email-field"><strong>Subject:</strong> Re: URGENT - Red warning light [Case ${c.num}]</div>
+        <div class="email-body">Hi Denise,
+
+I'm so sorry you're dealing with this right now. A red drive system warning means your vehicle has detected a fault that requires immediate attention, and your safety is our first priority.
+
+Please stay where you are with your hazards on. Do not attempt to drive the vehicle further until our team has assessed the situation.
+
+I am connecting you with our Roadside team right now. Someone will call you at the number on file ((313) 555-0188) within the next 5 minutes to coordinate a tow to the nearest Lucid Service Center.
+
+If you feel unsafe in your current location, please call 911 first.
+
+We've got you.
+
+Lucid Customer Care
+Case #${c.num}</div>
+      </div>
+    `;
+
+    await addStep(6, 'Human agent notified', `
+      <span class="tag warning">Action required → Tier 2 Roadside agent</span>
+      <div style="margin-top:6px;color:#444;font-size:11.5px;">Notification sent to assigned agent's screen. Case is marked URGENT in their queue with the draft response ready to review, edit, and send.</div>
+    `, 1500);
+
+    await addStep(7, 'Complete', `
+      <span class="tag success">✓ Case classified and routed in 4.8 seconds</span><br>
+      <span class="tag warning">⚠ Draft pending human review</span><br>
+      <span class="tag success">✓ Direct-assigned to qualified agent</span>
+      <div style="margin-top:8px;padding:8px;background:#fef1cd;border-radius:4px;color:#8c4a00;font-size:11px;">
+        <strong>Outcome:</strong> Agentforce did not send anything to the customer. It triaged, routed, and drafted. Every word that goes to Denise still comes from a human, but the human starts with a working draft instead of a blank screen.
+      </div>
+    `, 1400, false, 'draft');
+
+    setTimeout(() => {
+      setAFStatus('Idle, monitoring inbound cases', false);
+      document.getElementById('af-trigger').classList.remove('pulsing');
+      addFeedItem('Agentforce', 'Detected red drive system fault. Routed directly to Tier 2 Roadside agent and drafted response for review. No customer email sent yet, awaiting human approval.', '#fff', true);
+    }, 1200);
+  }
+
+  // ============ CHARGING USE CASE ============
+  async function runChargingQuestion(uc) {
+    const c = uc.newCase;
+
+    await addStep(1, 'Inbound case detected', `
+      New case created from <code>customercare@lucidmotors.com</code><br>
+      Case number: <code>${c.num}</code><br>
+      From: <code>${c.email}</code>
+    `, 2400);
+
+    const step2 = await addStep(2, 'Classifying case intent', `
+      <span style="color:#706e6b;">Analyzing subject line and email body...</span>
+    `, 1400, true);
+    await new Promise(r => setTimeout(r, 1800));
+    step2.querySelector('.af-step-num').classList.remove('thinking');
+    step2.querySelector('.af-step-num').textContent = '2';
+    step2.querySelector('.af-step-body').innerHTML = `
+      Detected intent: <span class="tag">Mobile App, Scheduled Charging</span><br>
+      Customer wants to set up time-of-use charging on their new Air GT.<br>
+      <span class="tag success">Confidence: 98%</span>
+      <span class="tag success">Topic found in knowledge base</span>
+    `;
+
+    const step3 = await addStep(3, 'Checking knowledge base', `
+      <span style="color:#706e6b;">Searching Data Library for scheduled charging procedure...</span>
+    `, 1400, true);
+    await new Promise(r => setTimeout(r, 1600));
+    step3.querySelector('.af-step-num').classList.remove('thinking');
+    step3.querySelector('.af-step-num').textContent = '3';
+    step3.querySelector('.af-step-body').innerHTML = `
+      Found match: <span class="tag">KB-2841, "Setting up scheduled charging in the Lucid app"</span><br>
+      Procedure is documented and tested. Safe to respond directly.
+    `;
+
+    await addStep(4, 'Updating case fields', `
+      <span class="tag">Case Reason → Mobile App</span>
+      <span class="tag">Subreason → Charging Schedule</span>
+      <span class="tag">Priority → Low</span>
+    `, 1400);
+
+    setTimeout(() => {
+      document.getElementById('case-status').textContent = 'In Progress';
+      document.getElementById('case-reason').textContent = 'Mobile App';
+      document.getElementById('detail-status').textContent = 'In Progress';
+      document.getElementById('detail-reason').textContent = 'Mobile App';
+      document.getElementById('detail-subreason').textContent = 'Charging Schedule';
+      document.getElementById('detail-priority').textContent = 'Low';
+    }, 100);
+
+    const step5 = await addStep(5, 'Drafting and sending answer', `
+      <span style="color:#706e6b;">Composing response grounded in KB-2841...</span>
+    `, 1400, true);
+    await new Promise(r => setTimeout(r, 2400));
+    step5.querySelector('.af-step-num').classList.remove('thinking');
+    step5.querySelector('.af-step-num').textContent = '5';
+    step5.querySelector('.af-step-body').innerHTML = `
+      Email sent from <code>customercare@lucidmotors.com</code>:
+      <div class="af-email-preview" style="margin-left:0;margin-top:8px;">
+        <div class="email-field"><strong>To:</strong> ${c.email}</div>
+        <div class="email-field"><strong>Subject:</strong> Re: How do I schedule charging [Case ${c.num}]</div>
+        <div class="email-body">Hi Tasha,
+
+Welcome to Lucid, and great instinct on the off-peak charging.
+
+To set up a charging schedule on your Air GT:
+
+  1. Open the Lucid app and tap the Charging tab at the bottom
+  2. Tap your vehicle name at the top
+  3. Scroll down to "Charging Schedules" and tap "Add Schedule"
+  4. Set start time to 12:00 AM and end time to 6:00 AM
+  5. Choose which days the schedule applies to (you can pick all)
+  6. Tap Save
+
+The car will only charge during those hours when plugged in. You can layer multiple schedules if your rates change on weekends.
+
+If anything looks different on your screen, just reply to this email and a team member will help you walk through it.
+
+Best,
+Lucid Customer Care
+Case #${c.num}</div>
+      </div>
+    `;
+
+    await addStep(6, 'Closing case', `
+      <span class="tag success">Status → Resolved</span>
+      <span class="tag success">Resolution Reason → KB Article Provided</span>
+      <div style="margin-top:6px;color:#706e6b;font-size:11px;">Common question fully answered from the knowledge base. No human action required. Case will auto-close in 72 hours if customer doesn't reply.</div>
+    `, 1600);
+
+    setTimeout(() => {
+      document.getElementById('case-status').textContent = 'Resolved';
+      document.getElementById('detail-status').textContent = 'Resolved';
+      document.getElementById('detail-resolution').textContent = 'KB Article Provided';
+    }, 100);
+
+    await addStep(7, 'Complete', `
+      <span class="tag success">✓ Case resolved in 6.1 seconds</span><br>
+      <span class="tag success">✓ No human touch required</span><br>
+      <span class="tag success">✓ Customer got immediate answer</span>
+      <div style="margin-top:8px;padding:8px;background:#e3f3e9;border-radius:4px;color:#2e844a;font-size:11px;">
+        <strong>Outcome:</strong> Common knowledge-base question fully resolved without an agent ever opening it. Cases like this are the volume that buries Tier 1 agents. Agentforce takes them so humans can focus on the hard ones.
+      </div>
+    `, 1400, false, 'resolved');
+
+    setTimeout(() => {
+      setAFStatus('Idle, monitoring inbound cases', false);
+      document.getElementById('af-trigger').classList.remove('pulsing');
+      addFeedItem('Agentforce', 'Question fully answered from knowledge base (KB-2841). Case marked Resolved. No human action required.', '#fff', true);
+    }, 1200);
+  }
+
+  // ============ RESET ============
+  function resetDemo() {
+    demoState = 'idle';
+    activeUseCase = null;
+    renderQueue(null);
+    setAFStatus('Agent idle, monitoring inbound cases', false);
+    setAFSubtitle('Service Agent, Customer Care');
+    document.getElementById('af-trigger').classList.remove('pulsing');
+    document.getElementById('af-steps').innerHTML = `
+      <div id="af-empty" style="text-align:center;color:#706e6b;padding:32px 16px;font-size:13px;">
+        <div style="font-size:32px;margin-bottom:12px;opacity:0.4;">✦</div>
+        <p style="margin-bottom:8px;font-weight:600;color:#444;">Agentforce is monitoring the Customer Care queue.</p>
+        <p style="font-size:12px;">Pick a use case from the top of the screen. Each one shows a different way Agentforce handles a case, from full automation to draft-and-review for sensitive cases.</p>
+      </div>
+    `;
+    document.querySelectorAll('.case-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-too').classList.add('active');
+    closeCase();
+  }
+</script>
+
+</body>
+</html>
